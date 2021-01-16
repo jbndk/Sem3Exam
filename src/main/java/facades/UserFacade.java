@@ -1,13 +1,8 @@
 package facades;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import dtos.UserDTO;
-import dtos.UserInfoDTO;
-import entities.Favourite;
 import entities.Role;
 import entities.User;
-import entities.UserInfo;
 import errorhandling.AlreadyExistsException;
 import errorhandling.MissingInputException;
 import errorhandling.NotFoundException;
@@ -31,6 +26,7 @@ public class UserFacade {
      * @param _emf
      * @return the instance of this facade.
      */
+    
     public static UserFacade getUserFacade(EntityManagerFactory _emf) {
         if (instance == null) {
             emf = _emf;
@@ -52,34 +48,6 @@ public class UserFacade {
         }
         return user;
     }
-
-    public UserInfoDTO addUserInfo(UserInfoDTO userinfodto, String userName) throws MissingInputException {
-
-        if (userinfodto.getMail().length() == 0 || (userinfodto.getTelno().length() == 0)) {
-            throw new MissingInputException("One or both values are missing");
-        }
-
-        EntityManager em = emf.createEntityManager();
-
-        try {
-
-            User user = em.find(User.class, userName);
-
-            UserInfo info = new UserInfo(userinfodto.getMail(), userinfodto.getTelno());
-
-            info.setUser(user);
-
-            em.getTransaction().begin();
-            em.persist(info);
-            em.getTransaction().commit();
-
-            return new UserInfoDTO(info.getEmail(), info.getPhone());
-        } finally {
-            em.close();
-        }
-    }
-
-
 
     public UserDTO newUser(UserDTO userDTO) throws MissingInputException, AlreadyExistsException {
         User newuser = new User(userDTO.getUserName(), userDTO.getUserPass(), userDTO.getName(), userDTO.getPhone());

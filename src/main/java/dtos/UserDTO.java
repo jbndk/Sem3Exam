@@ -4,8 +4,9 @@ import entities.User;
 
 /**
  *
- * @author am
+ * @author Jonas
  */
+
 public class UserDTO {
     
     private String userName;

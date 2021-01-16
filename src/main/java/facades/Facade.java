@@ -6,30 +6,22 @@
 package facades;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import dtos.HotelDTO;
 import dtos.HotelsDTO;
-import dtos.JokeDTO;
-import dtos.UserDTO;
 import entities.Booking;
 import entities.Creditcard;
-import entities.Favourite;
-import entities.Role;
 import entities.User;
 import errorhandling.API_Exception;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
@@ -57,55 +49,21 @@ public class Facade {
         return emf.createEntityManager();
     }
 
-    final static String DESTINATION_SERVER = "https://api.chucknorris.io/jokes/random?category=";
-
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
     final static String HOTEL_SERVER = "http://exam.cphdat.dk:8000/hotel/";
 
-    public static String getAllHotels(ExecutorService threadPool, final Gson gson) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        
-        //TODO: REFACTOR
-        Callable<HotelsDTO> destTask = new Callable<HotelsDTO>() {
-            @Override
-            public HotelsDTO call() throws IOException {
-                String dest = HttpUtils.fetchData(HOTEL_SERVER + "all");
-                Type listHotel = new TypeToken<ArrayList<HotelDTO>>() {
-                }.getType();
-                ArrayList<HotelDTO> hotelArray = gson.fromJson(dest, listHotel);
-                HotelsDTO hotels = new HotelsDTO();
-                hotels.setHotels(hotelArray);
-                return hotels;
-            }
-        };
-        Future<HotelsDTO> futureDestination = threadPool.submit(destTask);
-        HotelsDTO hotels2 = new HotelsDTO();
-        try {
-            hotels2 = futureDestination.get();
-        } catch (ExecutionException ex) {
-            Logger.getLogger(Facade.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        String combinedDTOString = gson.toJson(hotels2);
-        return combinedDTOString;
+    public static String getAllHotels(Gson gson) throws IOException, InterruptedException, ExecutionException, TimeoutException {
 
-        /*
-        //Solution with JSONArray:
-        JSONArray jsonArray = new JSONArray(fetch);
-        return IntStream.range(0, jsonArray.length())
-                .mapToObj(index -> ((JSONObject) jsonArray.get(index)).optString(key))
-                .collect(Collectors.toList());
-         */
- /*
-        //Solution with object mapper:
-        ObjectMapper objectMapper = new ObjectMapper();
+        String dest = HttpUtils.fetchData(HOTEL_SERVER + "all");
+        Type listHotel = new TypeToken<ArrayList<HotelDTO>>() {
+        }.getType();
+        ArrayList<HotelDTO> hotelArray = gson.fromJson(dest, listHotel);
+        HotelsDTO hotels = new HotelsDTO();
+        hotels.setHotels(hotelArray);
+
+        String result = gson.toJson(hotels);
         
-        ArrayList<HotelDTO> hotelArray = objectMapper.readValue(fetch, HotelDTO.class);
-        List<HotelDTO> hotelList = new ArrayList(Arrays.asList(hotelArray));
-        
-        String hotels = hotelList.get(0).getId();
-        
-        return hotels;
-         */
+        return result;
+
     }
 
     public static String getHotel(String id, ExecutorService threadPool, final Gson gson) throws IOException, InterruptedException, ExecutionException, TimeoutException {
@@ -133,109 +91,54 @@ public class Facade {
         return result;
 
     }
-    
+
     public List<Booking> getMyBookings(String username) {
-        
+
         EntityManager em = emf.createEntityManager();
         TypedQuery<Booking> query = em.createQuery("SELECT b FROM Booking b WHERE b.user = :name", Booking.class);
         query.setParameter("name", username);
         List<Booking> bookings = query.getResultList();
-        
+
         em.close();
 
         return bookings;
     }
-    
-    
+
     public static String newBooking(String username, Booking booking, ExecutorService threadPool, final Gson gson) throws IOException, InterruptedException, ExecutionException, TimeoutException, API_Exception {
-        
+
         String returnString = "";
-        
+
         EntityManagerFactory emf = EMF_Creator.createEntityManagerFactory();
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
-                       
+
         try {
-        Creditcard creditCard = em.find(Creditcard.class, booking.getCardNumber());
-        //Checks if the credit card belongs to the user:
-        if (!creditCard.getUser().getUserName().equalsIgnoreCase(username)) {
-            returnString = "The credit card with number " + booking.getCardNumber() + " does not belong to this user.";
+            Creditcard creditCard = em.find(Creditcard.class, booking.getCardNumber());
+            //Checks if the credit card belongs to the user:
+            if (!creditCard.getUser().getUserName().equalsIgnoreCase(username)) {
+                returnString = "The credit card with number " + booking.getCardNumber() + " does not belong to this user.";
+                return returnString;
+            }
+
+        } catch (Exception e) {
+            returnString = "Invalid creditcard number";
             return returnString;
         }
-        
-        } catch (Exception e) {
-           returnString = "Invalid creditcard number";
-           return returnString;
-        }
-               
+
         try {
-        //Checks if the user exists in DB:
-        User user = em.find(User.class, username);
-        user.addBooking(booking);
+            //Checks if the user exists in DB:
+            User user = em.find(User.class, username);
+            user.addBooking(booking);
         } catch (Exception e) {
-           returnString = "Invalid username";
-           return returnString;
-        }       
-        
+            returnString = "Invalid username";
+            return returnString;
+        }
+
         em.getTransaction().commit();
-        
+
         returnString = "Booking successfully made!";
 
         return returnString;
 
-    }
-
-    public static String getJokeByCategory(String categories, ExecutorService threadPool, final Gson gson) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-
-        //Makes sure that we use lowerCase for DB:
-        String categoriesLower = categories.toLowerCase();
-
-        //Separates the 'categories' string by commas into a new array:
-        String[] categoryArray = categoriesLower.split(",");
-
-        //Creates a new list with the strings the 'categoryArray':
-        List<String> categoryList = Arrays.asList(categoryArray);
-
-        //Initialize a list for all jokeDTO:
-        List<JokeDTO> jokeDTOs = new ArrayList();
-
-        //Initialize a list for all callables:
-        List<Callable> callableList = new ArrayList();
-
-        //For each category:
-        for (String category : categoryList) {
-
-            //A callable is created:
-            Callable<JokeDTO> cat = new Callable<JokeDTO>() {
-                @Override
-                public JokeDTO call() throws IOException {
-
-                    String fetchResult = HttpUtils.fetchData(DESTINATION_SERVER + category);
-
-                    JokeDTO joke = new JokeDTO(gson.fromJson(fetchResult, JokeDTO.class
-                    ).getValue(), category);
-
-                    return joke;
-                }
-            };
-
-            //And added to the list of callables:
-            callableList.add(cat);
-        }
-
-        //For each callable in the callable list:            
-        for (Callable callable : callableList) {
-            //The callable is submitted to the threadPool (ExecutorService) and a future is made:
-            Future<JokeDTO> future = threadPool.submit(callable);
-            //A jokeDTO is made from the future:
-            JokeDTO joke = future.get();
-            //And the jokeDTO is added to the list of jokeDTOs:
-            jokeDTOs.add(joke);
-        }
-
-        //jokeDTOs list is made to JSON and = the result string:
-        String result = gson.toJson(jokeDTOs);
-
-        return result;
     }
 }

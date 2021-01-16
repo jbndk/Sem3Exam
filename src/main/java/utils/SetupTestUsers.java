@@ -4,19 +4,15 @@ package utils;
 import dtos.UserDTO;
 import entities.Booking;
 import entities.Creditcard;
-import entities.Favourite;
 import entities.Role;
 import entities.User;
-import entities.UserInfo;
 import errorhandling.AlreadyExistsException;
 import errorhandling.MissingInputException;
 import facades.Facade;
 import facades.UserFacade;
-import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
 
 public class SetupTestUsers {
 
@@ -65,25 +61,20 @@ public class SetupTestUsers {
         Booking b1 = new Booking("4042", "1234", "2021-02-25", "5", "200");
         Booking b2 = new Booking("4042", "1234", "2021-08-20", "3", "350");
         
-        Creditcard c1 = new Creditcard("Visa", "1234", "2022-05-28", "Jonas");
-        
-        UserDTO userdto = new UserDTO("jbn", "jbn123", "Jonas", "11223344");
-        
-        userFacade.newUser(userdto);
+        Creditcard c1 = new Creditcard("Visa", "321", "2022-05-28", "user1");
         
         em.getTransaction().begin();
         
-        //User u1 = em.find(User.class, "user1");
+        User u4 = em.find(User.class, "user1");
 
         //System.out.println(FACADE.getMyBookings("user1"));
         
         //u1.addBooking(b1);
         //u1.addBooking(b2);
-        //u1.addCreditcard(c1);
+        u4.addCreditcard(c1);
         
         //em.persist(b1);
         //em.persist(b2);
-        //em.persist(c1);
 
         /*
         //FIRST TIME SET-UP:

@@ -12,6 +12,7 @@ import java.util.List;
  *
  * @author Jonas
  */
+
 public class HotelsDTO {
     
     private List<HotelDTO> hotels = new ArrayList();

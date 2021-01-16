@@ -42,9 +42,6 @@ public class User implements Serializable {
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private List<Role> roleList = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "users", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
-    List<Favourite> favourites;
-
     //NOTE: Mapped by skal være på "one" siden ("many" siden indeholder fremmednøglen og er dermed ejersiden)
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     List<Booking> bookings;
@@ -74,28 +71,6 @@ public class User implements Serializable {
         }
     }
 
-    public List<Favourite> getFavourites() {
-        return favourites;
-    }
-
-    public void setFavourites(List<Favourite> favourites) {
-        this.favourites = favourites;
-    }
-
-    public void addFavourite(Favourite favourite) {
-        if (favourite != null) {
-            this.favourites.add(favourite);
-            favourite.getUsers().add(this);
-        }
-    }
-
-    public void removeFavourite(Favourite favourite) {
-        if (favourite != null) {
-            favourites.remove(favourite);
-            favourite.getUsers().remove(this);
-        }
-    }
-
     public List<String> getRolesAsStrings() {
         if (roleList.isEmpty()) {
             return null;
@@ -119,8 +94,7 @@ public class User implements Serializable {
         this.userName = userName;
         this.userPass = BCrypt.hashpw(userPass, BCrypt.gensalt(10));
         this.name = name;
-        this.phone = phone;
-        this.favourites = new ArrayList<>();
+        this.phone = phone;;
         this.bookings = new ArrayList<>();
     }
 

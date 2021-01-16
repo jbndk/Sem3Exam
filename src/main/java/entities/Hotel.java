@@ -9,6 +9,7 @@ package entities;
  *
  * @author Jonas
  */
+
 public class Hotel {
     
     String id;

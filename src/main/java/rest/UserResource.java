@@ -4,21 +4,16 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dtos.UserDTO;
-import dtos.UserInfoDTO;
 import entities.User;
 import errorhandling.API_Exception;
 import errorhandling.AlreadyExistsException;
 import errorhandling.MissingInputException;
 import errorhandling.NotFoundException;
-import facades.Facade;
 import facades.UserFacade;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -36,11 +31,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import utils.EMF_Creator;
-/**
- * @author lam@cphbusiness.dk
- */
+
 @Path("user")
-public class DemoResource {
+public class UserResource {
     
     private static final EntityManagerFactory EMF = EMF_Creator.createEntityManagerFactory();
 
@@ -108,16 +101,6 @@ public class DemoResource {
     }
     
     @POST
-    @Path("/{username}")
-    @Consumes({MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_JSON})
-    public String addUserInfo(@PathParam("username") String user, String userinfo) throws MissingInputException {
-        UserInfoDTO p = GSON.fromJson(userinfo, UserInfoDTO.class);
-        UserInfoDTO newU = FACADE.addUserInfo(p, user);
-        return GSON.toJson(newU);
-    }
-    
-    @POST
     @Path("/new")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -146,12 +129,19 @@ public class DemoResource {
             return Response.ok(new Gson().toJson(responseJson)).build();
     }
     
+    
     @DELETE
     @Path("/delete/{userName}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("user")
     public String deleteUser (@PathParam("userName") String userName) throws NotFoundException {
+       String thisuser = securityContext.getUserPrincipal().getName();
+       if(thisuser.equalsIgnoreCase(userName)) {
        UserDTO userDTO = FACADE.deleteUser(userName);
        return GSON.toJson(userDTO);
+       } else {
+       return "Not allowed. Invalid user.";
+       }
     }
     
     @POST
