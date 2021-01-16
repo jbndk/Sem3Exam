@@ -7,8 +7,12 @@ package facades;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import dtos.HotelDTO;
+import dtos.HotelsDTO;
 import dtos.JokeDTO;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,6 +21,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import utils.HttpUtils;
@@ -42,9 +48,82 @@ public class Facade {
         return emf.createEntityManager();
     }
 
+    final static String DESTINATION_SERVER = "https://api.chucknorris.io/jokes/random?category=";
+
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    final static String DESTINATION_SERVER = "https://api.chucknorris.io/jokes/random?category=";
+    final static String HOTEL_SERVER = "http://exam.cphdat.dk:8000/hotel/";
+
+    public static String getAllHotels(ExecutorService threadPool, final Gson gson) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        
+        //TODO: REFACTOR
+        Callable<HotelsDTO> destTask = new Callable<HotelsDTO>() {
+            @Override
+            public HotelsDTO call() throws IOException {
+                String dest = HttpUtils.fetchData(HOTEL_SERVER + "all");
+                Type listHotel = new TypeToken<ArrayList<HotelDTO>>() {
+                }.getType();
+                ArrayList<HotelDTO> hotelArray = gson.fromJson(dest, listHotel);
+                HotelsDTO hotels = new HotelsDTO();
+                hotels.setHotels(hotelArray);
+                return hotels;
+            }
+        };
+        Future<HotelsDTO> futureDestination = threadPool.submit(destTask);
+        HotelsDTO hotels2 = new HotelsDTO();
+        try {
+            hotels2 = futureDestination.get();
+        } catch (ExecutionException ex) {
+            Logger.getLogger(Facade.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        String combinedDTOString = gson.toJson(hotels2);
+        return combinedDTOString;
+
+        /*
+        //Solution with JSONArray:
+        JSONArray jsonArray = new JSONArray(fetch);
+        return IntStream.range(0, jsonArray.length())
+                .mapToObj(index -> ((JSONObject) jsonArray.get(index)).optString(key))
+                .collect(Collectors.toList());
+         */
+ /*
+        //Solution with object mapper:
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        ArrayList<HotelDTO> hotelArray = objectMapper.readValue(fetch, HotelDTO.class);
+        List<HotelDTO> hotelList = new ArrayList(Arrays.asList(hotelArray));
+        
+        String hotels = hotelList.get(0).getId();
+        
+        return hotels;
+         */
+    }
+
+    public static String getHotel(String id, ExecutorService threadPool, final Gson gson) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+
+        Callable<HotelDTO> taskCallable = new Callable<HotelDTO>() {
+
+            @Override
+            public HotelDTO call() throws IOException {
+
+                String fetch = HttpUtils.fetchData(HOTEL_SERVER + id);
+
+                HotelDTO hotelDTO = gson.fromJson(fetch, HotelDTO.class
+                );
+
+                return hotelDTO;
+            }
+        };
+
+        Future<HotelDTO> future = threadPool.submit(taskCallable);
+
+        HotelDTO futureResult = future.get();
+
+        String result = gson.toJson(futureResult);
+
+        return result;
+
+    }
 
     public static String getJokeByCategory(String categories, ExecutorService threadPool, final Gson gson) throws IOException, InterruptedException, ExecutionException, TimeoutException {
 
@@ -73,7 +152,8 @@ public class Facade {
 
                     String fetchResult = HttpUtils.fetchData(DESTINATION_SERVER + category);
 
-                    JokeDTO joke = new JokeDTO(gson.fromJson(fetchResult, JokeDTO.class).getValue(), category);
+                    JokeDTO joke = new JokeDTO(gson.fromJson(fetchResult, JokeDTO.class
+                    ).getValue(), category);
 
                     return joke;
                 }

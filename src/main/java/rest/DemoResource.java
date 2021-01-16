@@ -124,16 +124,21 @@ public class DemoResource {
     public Response createUser(String jsonString) throws API_Exception, MissingInputException, AlreadyExistsException {
         String username;
         String password;
+        String name;
+        String phone;
         
         try {
             JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
             username = json.get("username").getAsString();
             password = json.get("password").getAsString();
+            name = json.get("name").getAsString();
+            phone = json.get("phone").getAsString();
+            
         } catch (Exception e) {
            throw new API_Exception("Malformed JSON Suplied",400,e);
         }
         
-            UserDTO userdto = new UserDTO(username, password);
+            UserDTO userdto = new UserDTO(username, password, name, phone);
             FACADE.newUser(userdto);
             JsonObject responseJson = new JsonObject();
             responseJson.addProperty("username", username);

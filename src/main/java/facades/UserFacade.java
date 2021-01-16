@@ -82,16 +82,18 @@ public class UserFacade {
 
 
     public UserDTO newUser(UserDTO userDTO) throws MissingInputException, AlreadyExistsException {
-        User newuser = new User(userDTO.getUserName(), userDTO.getUserPass());
+        User newuser = new User(userDTO.getUserName(), userDTO.getUserPass(), userDTO.getName(), userDTO.getPhone());
 
         EntityManager em = emf.createEntityManager();
         
-        //Role userRole = new Role("user");
         Role userRole = em.find(Role.class, "user");
-
-        if (userDTO.getUserName().length() == 0 || (userDTO.getUserPass().length() == 0)) {
+        
+        //Checks if values are missing from user input:
+        if (userDTO.getUserName().length() == 0 || userDTO.getUserPass().length() == 0 || userDTO.getName().length() == 0 || userDTO.getPhone().length() == 0) {
             throw new MissingInputException("One or both values are missing");
         } 
+        
+        //Checks if user already exists in DB:
         if (em.find(User.class, newuser.getUserName())!= null) {
             throw new AlreadyExistsException("User already exists");
         }

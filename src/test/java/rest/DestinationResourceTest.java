@@ -57,8 +57,8 @@ public class DestinationResourceTest {
         RestAssured.defaultParser = Parser.JSON;
         
         EntityManager em = emf.createEntityManager();
-        u1 = new User("Hans", "test123");
-        u2 = new User("Grethe", "test321");
+        u1 = new User("Hans", "test123", "Hansen Hansen", "12345678");
+        u2 = new User("Grethe", "test321", "Grethe Larsen", "87654321");
 
         f1 = new Favourite("Iceland");
         f2 = new Favourite("Portugal");

@@ -60,9 +60,9 @@ public class UserFacadeTest {
             em.createNamedQuery("User.deleteAllRows").executeUpdate();
             em.createNamedQuery("Role.deleteAllRows").executeUpdate();
             
-        u1 = new User("user11", "test11");
-        u2 = new User("user12", "test12");
-        u3 = new User("user13", "test13");
+        u1 = new User("user11", "test11", "user11", "123");
+        u2 = new User("user12", "test12", "user12", "456");
+        u3 = new User("user13", "test13", "user13", "789");
 
         f1 = new Favourite("Belgium");
         f2 = new Favourite("France");

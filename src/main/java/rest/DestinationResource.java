@@ -2,6 +2,7 @@ package rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dtos.HotelDTO;
 import entities.Favourite;
 import errorhandling.AlreadyExistsException;
 import errorhandling.MissingInputException;
@@ -26,7 +27,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import utils.EMF_Creator;
 
-@Path("destination")
+@Path("hotel")
 public class DestinationResource {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -37,6 +38,21 @@ public class DestinationResource {
     private static final Facade FACADE = Facade.getFacade(EMF);
     private static final DestinationFacade DESTINATIONFACADE = DestinationFacade.getDestinationFacade(EMF);
     
+    @GET
+    @Path("all")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getAllHotels() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        String result = Facade.getAllHotels(es, gson);
+        return result;
+    }
+    
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getHotel(@PathParam("id") String id) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        String result = FACADE.getHotel(id, es, gson);
+        return result;
+    }
     
     @GET
     @Path("joke/{categories}")
