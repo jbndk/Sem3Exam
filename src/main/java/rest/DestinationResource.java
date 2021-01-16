@@ -2,8 +2,13 @@ package rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dtos.HotelDTO;
+import dtos.UserDTO;
+import entities.Booking;
 import entities.Favourite;
+import errorhandling.API_Exception;
 import errorhandling.AlreadyExistsException;
 import errorhandling.MissingInputException;
 import facades.UserFacade;
@@ -25,6 +30,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
+import javax.ws.rs.core.Response;
 import utils.EMF_Creator;
 
 @Path("hotel")
@@ -52,6 +58,57 @@ public class DestinationResource {
     public String getHotel(@PathParam("id") String id) throws IOException, InterruptedException, ExecutionException, TimeoutException {
         String result = FACADE.getHotel(id, es, gson);
         return result;
+    }
+    
+    @GET
+    @Path("mybookings/{username}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<String> getMyBookings(@PathParam("username") String username) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        List<Booking> result = FACADE.getMyBookings(username);
+        
+        List<String> bookings = new ArrayList<>();
+        
+        result.forEach(booking -> {
+            bookings.add(booking.toString());
+        });
+        
+        return bookings;
+    }    
+    
+    @POST
+    @Path("book")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response bookHotel(String jsonString) throws IOException, InterruptedException, ExecutionException, TimeoutException, API_Exception {
+        String username;
+        String hotelID;
+        String cardNumber;
+        String startDate;
+        String numberOfNights;
+        String price;
+        
+        try {
+            JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
+            username = json.get("username").getAsString();
+            hotelID = json.get("hotelID").getAsString();
+            cardNumber = json.get("cardNumber").getAsString();
+            startDate = json.get("startDate").getAsString();
+            numberOfNights = json.get("numberOfNights").getAsString();
+            price = json.get("price").getAsString();
+
+        } catch (Exception e) {
+           throw new API_Exception("One or more fields are incorrect/missing",400,e);
+        }
+            
+            Booking booking = new Booking(hotelID, cardNumber, startDate, numberOfNights, price);
+            
+            String message = FACADE.newBooking(username, booking, es, gson);
+            
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("username", username);
+            responseJson.addProperty("hotelID", hotelID);
+            responseJson.addProperty("message", message);
+            
+            return Response.ok(new Gson().toJson(responseJson)).build();
     }
     
     @GET

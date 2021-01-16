@@ -25,11 +25,9 @@ public class Creditcard implements Serializable {
     
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    String type;    
     String cardNumber;
+    
+    String type;
     String expirationDate;
     String nameOnCard;
 
@@ -76,14 +74,6 @@ public class Creditcard implements Serializable {
 
     public void setNameOnCard(String nameOnCard) {
         this.nameOnCard = nameOnCard;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
     
     public User getUser() {

@@ -7,10 +7,12 @@ package entities;
 
 import java.io.Serializable;
 import java.util.Date;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
@@ -28,22 +30,27 @@ public class Booking implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    String hotelID;
+    String cardNumber;
     String startDate;    
     String numberOfNights;
     String price;
     
+    @JoinColumn(name = "user")
     @ManyToOne
     private User user;
     
     public Booking() {
     }
     
-    public Booking(String startDate, String numberOfNights, String price) {
+    public Booking(String hotelID, String cardNumber, String startDate, String numberOfNights, String price) {
+        this.hotelID = hotelID;
+        this.cardNumber = cardNumber;
         this.startDate = startDate;
         this.numberOfNights = numberOfNights;
         this.price = price;
     }
-
+    
     public String getNumberOfNights() {
         return numberOfNights;
     }
@@ -82,5 +89,21 @@ public class Booking implements Serializable {
 
     public void setStartDate(String startDate) {
         this.startDate = startDate;
+    }
+    
+    public String getHotelID() {
+        return hotelID;
+    }
+
+    public void setHotelID(String hotelID) {
+        this.hotelID = hotelID;
+    }
+    
+        public String getCardNumber() {
+        return cardNumber;
+    }
+
+    public void setCardNumber(String cardNumber) {
+        this.cardNumber = cardNumber;
     }
 }

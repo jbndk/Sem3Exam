@@ -217,7 +217,7 @@ public class DestinationFacade {
         } else {
 
             try {
-//
+
                 User user = em.find(User.class, userName);
 
                 user.addFavourite(favourite);

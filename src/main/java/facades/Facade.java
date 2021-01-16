@@ -11,6 +11,13 @@ import com.google.gson.reflect.TypeToken;
 import dtos.HotelDTO;
 import dtos.HotelsDTO;
 import dtos.JokeDTO;
+import dtos.UserDTO;
+import entities.Booking;
+import entities.Creditcard;
+import entities.Favourite;
+import entities.Role;
+import entities.User;
+import errorhandling.API_Exception;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -25,6 +32,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
+import utils.EMF_Creator;
 import utils.HttpUtils;
 
 /**
@@ -122,6 +131,57 @@ public class Facade {
         String result = gson.toJson(futureResult);
 
         return result;
+
+    }
+    
+    public List<Booking> getMyBookings(String username) {
+        
+        EntityManager em = emf.createEntityManager();
+        TypedQuery<Booking> query = em.createQuery("SELECT b FROM Booking b WHERE b.user = :name", Booking.class);
+        query.setParameter("name", username);
+        List<Booking> bookings = query.getResultList();
+        
+        em.close();
+
+        return bookings;
+    }
+    
+    
+    public static String newBooking(String username, Booking booking, ExecutorService threadPool, final Gson gson) throws IOException, InterruptedException, ExecutionException, TimeoutException, API_Exception {
+        
+        String returnString = "";
+        
+        EntityManagerFactory emf = EMF_Creator.createEntityManagerFactory();
+        EntityManager em = emf.createEntityManager();
+        em.getTransaction().begin();
+                       
+        try {
+        Creditcard creditCard = em.find(Creditcard.class, booking.getCardNumber());
+        //Checks if the credit card belongs to the user:
+        if (!creditCard.getUser().getUserName().equalsIgnoreCase(username)) {
+            returnString = "The credit card with number " + booking.getCardNumber() + " does not belong to this user.";
+            return returnString;
+        }
+        
+        } catch (Exception e) {
+           returnString = "Invalid creditcard number";
+           return returnString;
+        }
+               
+        try {
+        //Checks if the user exists in DB:
+        User user = em.find(User.class, username);
+        user.addBooking(booking);
+        } catch (Exception e) {
+           returnString = "Invalid username";
+           return returnString;
+        }       
+        
+        em.getTransaction().commit();
+        
+        returnString = "Booking successfully made!";
+
+        return returnString;
 
     }
 

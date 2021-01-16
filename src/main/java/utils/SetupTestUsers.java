@@ -1,6 +1,7 @@
   
 package utils;
 
+import dtos.UserDTO;
 import entities.Booking;
 import entities.Creditcard;
 import entities.Favourite;
@@ -9,6 +10,7 @@ import entities.User;
 import entities.UserInfo;
 import errorhandling.AlreadyExistsException;
 import errorhandling.MissingInputException;
+import facades.Facade;
 import facades.UserFacade;
 import java.util.List;
 
@@ -48,6 +50,8 @@ public class SetupTestUsers {
         
         EntityManagerFactory emf = EMF_Creator.createEntityManagerFactory();
         EntityManager em = emf.createEntityManager();
+        Facade FACADE = Facade.getFacade(emf);
+        UserFacade userFacade = UserFacade.getUserFacade(emf);
                 
         User user1 = new User("user1", "test1", "user one", "12345678");
         User user2 = new User("user2", "test2", "user two", "22345678");
@@ -58,23 +62,28 @@ public class SetupTestUsers {
         Role userRole = new Role("user");
         Role adminRole = new Role("admin");
 
-        Booking b1 = new Booking("2021-02-25", "5", "200");
-        Booking b2 = new Booking("2021-08-20", "3", "350");
+        Booking b1 = new Booking("4042", "1234", "2021-02-25", "5", "200");
+        Booking b2 = new Booking("4042", "1234", "2021-08-20", "3", "350");
         
-        Creditcard c1 = new Creditcard("Visa", "7151561561", "2022-05-28", "Jonas");
-                    
+        Creditcard c1 = new Creditcard("Visa", "1234", "2022-05-28", "Jonas");
+        
+        UserDTO userdto = new UserDTO("jbn", "jbn123", "Jonas", "11223344");
+        
+        userFacade.newUser(userdto);
         
         em.getTransaction().begin();
         
-        User u1 = em.find(User.class, "user1");
+        //User u1 = em.find(User.class, "user1");
+
+        //System.out.println(FACADE.getMyBookings("user1"));
         
-        u1.addBooking(b1);
-        u1.addBooking(b2);
-        u1.addCreditcard(c1);
+        //u1.addBooking(b1);
+        //u1.addBooking(b2);
+        //u1.addCreditcard(c1);
         
-        em.persist(b1);
-        em.persist(b2);
-        em.persist(c1);
+        //em.persist(b1);
+        //em.persist(b2);
+        //em.persist(c1);
 
         /*
         //FIRST TIME SET-UP:
